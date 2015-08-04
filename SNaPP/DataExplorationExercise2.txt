@@ -1,0 +1,30 @@
+﻿#----------------------------------------------------------------------------------------------------#
+# DATA GENERATION EXERCISE 2
+#----------------------------------------------------------------------------------------------------#
+
+
+You job is to load in the Duncan Occupational Prestige Data found from this website:
+
+
+http://socserv.mcmaster.ca/jfox/Books/Companion/data.html
+
+
+
+Alternatively, if you have another dataset you are interested in using, you may explore that dataset. 
+
+
+#Step 1: Load in the data
+#You should both download the csv file and read it in from your local file, and also read it in straight from the internet site
+#What command are you going to use?
+
+
+
+
+1. Summarize the data--how many variables are there? how many cases?
+2. Look at subsets of the data 
+3. What is the value of the education variable for the 35th case?
+4. What is the mean of the education variable?
+5. How many different types of occupations are there?
+6. Which cases in the data have a prestige value greater than 85?
+7. View the value of all cases of the prestige variable that are greater than 85
+8. View the dataset for all cases in which prestige is higher than 85
