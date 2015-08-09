@@ -9,10 +9,20 @@ duncan <- read.table("https://socserv.mcmaster.ca/jfox/Books/Companion/data/Dunc
 ### Now to answer some questions about the data:
 
 #### Summarize the data: 
+
 * How many variables are there?  
-  I'd say `r ncol(duncan)`, but I'm not happy with that answer.
+  I can think of a couple of ways to get to answers.  
+  ```r
+  ncol(duncan)
+  length(duncan)
+  ```
+  Both of those seem to work, but I'm not happy that they both return 4 when the answer seems, intuitively, to be 5.
 * How many cases?  
-  I'd like to say `r nrow(duncan)`.
+  I'd like to say 45, but this may not be what the word "case" means here.
+  ```r
+  nrow(duncan)
+  ```
+
 #### Look at subsets of the data:
 * What is the value of the education variable for the 35th case?
 * What is the mean of the education variable?
