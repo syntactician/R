@@ -1,0 +1,22 @@
+## Data Generation Excercise
+
+### Let's start by reading in the data. I'll call it `duncan`.
+
+```r
+duncan <- read.table("https://socserv.mcmaster.ca/jfox/Books/Companion/data/Duncan.txt")
+```
+
+### Now to answer some questions about the data:
+
+#### Summarize the data: 
+* How many variables are there?  
+  I'd say `r ncol(duncan)`, but I'm not happy with that answer.
+* How many cases?  
+  I'd like to say `r nrow(duncan)`.
+#### Look at subsets of the data:
+* What is the value of the education variable for the 35th case?
+* What is the mean of the education variable?
+* How many different types of occupations are there?
+* Which cases in the data have a prestige value greater than 85?
+* View the value of all cases of the prestige variable that are greater than 85
+* View the dataset for all cases in which prestige is higher than 85
