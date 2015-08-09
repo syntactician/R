@@ -11,14 +11,14 @@ duncan <- read.table("https://socserv.mcmaster.ca/jfox/Books/Companion/data/Dunc
 #### Summarize the data: 
 
 * How many variables are there?  
-  I can think of a couple of ways to get to answers.  
+  I can think of a couple of ways to get to answers.   
   ```r
-  ncol(duncan)
-  length(duncan)
+  ncol(duncan)  
+  length(duncan)  
   ```
   Both of those seem to work, but I'm not happy that they both return 4 when the answer seems, intuitively, to be 5.
 * How many cases?  
-  I'd like to say 45, but this may not be what the word "case" means here.
+  I'd like to say 45, but this may not be what the word "case" means here.  
   ```r
   nrow(duncan)
   ```
