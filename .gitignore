@@ -2,3 +2,6 @@
 *.swp
 ~$*
 .Rapp*
+*.pdf
+*.html
+*.docx
