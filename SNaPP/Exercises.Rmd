@@ -1,40 +1,57 @@
----
-output: html_document
----
-## Data Generation Excercise
+## Data Generation Excercise 1
 
-### Let's start by reading in the data. I'll call it `duncan`.
+Create a vector with all the names of the people in the lab:
+```{r}
+member<- c("Jaime", "Emily", "Sora", "Yussre", "Zarine", "Jessie", "Edward", "John", "Sahil", "Mitch", "Zachary", "Will")
+male <- rep(c(0,1), c(7,5))
+```
+
+I have no idea how old everyone is, or when they were born. Oops.
+I guess I'll just bind what I have into a dataframe.
+
+```{r}
+data.frame(member, male)
+```
+
+## Data Generation Exercise 2
+
+Let's start by reading in the data. I'm calling it `duncan`.
 
 ```{r}
 duncan <- read.table("http://socserv.mcmaster.ca/jfox/Books/Companion/data/Duncan.txt")
 ```
 
-## Now to answer some questions about the data:
+### Now to answer some questions about the data:
 
-### Summarize the data: 
+#### Summarize the data: 
 
-* How many variables are there?  
+**How many variables are there?**  
 I'm reasonably sure it's `r ncol(duncan)`.   
 
-* How many cases?  
+**How many cases?**  
 I'd like to say `r nrow(duncan)`, but I'm somewhat concerned that I may not have an adequate understanding of the term "case."
 
-### Look at subsets of the data:
+#### Look at subsets of the data:
 
-* What is the value of the education variable for the 35th case?  
-  I suppose it's `r duncan[35,3]`.
-* What is the mean of the education variable?  
-  It should be `r mean(duncan$education)`, though for presentation it probably looks better as something like `r round(mean(duncan$education),1)`.
-* How many different types of occupations are there?  
-  I can't figure out a particularly pretty way to calculate this, but `r length(unique(duncan[,1]))` seems to be right.
-* Which cases in the data have a prestige value greater than 85?  
-  It took a while, but I found a solution I like that doesn't require any extra steps: `r rownames(duncan[which(duncan$prestige >85),])`.  
-  It also just occured to me that the question might mean the number of the cases, in which case it's much easier: `r which(duncan$prestige > 85)`.
-* View the value of all cases of the prestige variable that are greater than 85
-  If you just want the list of values, that's easy: `r duncan$prestige[which(duncan$prestige > 85)]`.
-* View the dataset for all cases in which prestige is higher than 85
-  This is a little tougher, but I think this works:
-  ```{r}
-  duncan[which(duncan$prestige > 85),]
-  ```
-  Unfortunately, the output format is horrible outside the terminal.
+**What is the value of the education variable for the 35th case?**  
+I suppose it's `r duncan[35,3]`.
+
+**What is the mean of the education variable?**  
+It should be `r mean(duncan$education)`, though for presentation it probably looks better as something like `r round(mean(duncan$education),1)`.
+
+**How many different types of occupations are there?**  
+I can't figure out a particularly pretty way to calculate this, but `r length(unique(duncan[,1]))` seems to be right.
+
+**Which cases in the data have a prestige value greater than 85?**  
+It took a while, but I found a solution I like that doesn't require any extra steps: `r rownames(duncan[which(duncan$prestige >85),])`.  
+It also just occured to me that the question might mean the number of the cases, in which case it's much easier: `r which(duncan$prestige > 85)`.
+
+**View the value of all cases of the prestige variable that are greater than 85.**  
+If you just want the list of values, that's easy: `r duncan$prestige[which(duncan$prestige > 85)]`.
+
+**View the dataset for all cases in which prestige is higher than 85.**  
+This is a little tougher, but I think this works:
+```{r}
+duncan[which(duncan$prestige > 85),]
+
+```
