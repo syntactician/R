@@ -1,22 +1,27 @@
+---
+output: pdf_document
+---
 ## Canned Data Report
 ##### Edward Hernández
-I'm going to complete the canned data report assignment from Fall 2014 to brush up on my R skills.
+I'm going to complete the canned data report assignment from Fall 2014 (again) to brush up on my R skills.
 
-Obviously, let's read in some data.
+Obviously, let's start by reading in some data.
 ```{r}
 mturk.stress <- read.csv("mturkstress.csv",header=TRUE)
 ```
 
+Now let's have some fun with it!
+
 ### Variables
 
-#### How many subjects were in each of the four conditions of the experiment?
+#### How many subjects were in each of the conditions of the experiment?
+
+The experiment had four treatment conditions: a control, a stress condition, a political stress condition, and a contentment condition. Participants were evenly distributed among these conditions.
 
 ```{r}
 treatmenttable <- table(mturk.stress$treatmentgroup)
 rownames(treatmenttable) <- c("Control","Stress","Politics","Content")
 treatmenttable
-
-table(mturk.stress$treatmentgroup)
 ```
 
 #### What is the Mean of the Social Interaction Anxiety Scale variable?
@@ -206,6 +211,7 @@ mturk.stressdem.matrix <- matrix(c(mturk.stressdemstrong,mturk.stressdemweak,mtu
 anesdem.matrix <- matrix(c(0.19,0.15,0.17),ncol=1,nrow=3)
 
 demtestmatrix <- cbind(mturk.stressdem.matrix,anesdem.matrix)
+demtestmatrix
 
 prop.test(demtestmatrix)
 ```
