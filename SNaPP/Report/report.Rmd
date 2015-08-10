@@ -48,10 +48,13 @@ mean(na.omit(mturk.stress$saisscale))
 ##### It should take these values: `0` if the respondent is a true Independent, `1` if the respondent leans toward the Democrats or Republicans, `2` if the respondent is a weak Democrat or Republican, and `3` if the respondent is a strong Democrat or Republican. 
 
 
-creating a null variable, running a loop to write in values based on party answers
+To do this, I'll creat a new variable called `partystrength` in the `mturk.stress` dataset, initially filled with `NA` values.
 ```{r}
 mturk.stress$partystrength <- NA
-i <- 1926
+```
+Now I'll run a while loop that will fill in the new variable based on the existing data.
+```{r}
+i <- nrow(mturk.stress)
 while (i >= 1) {
 	if(is.na(mturk.stress[i,23])==TRUE) {
 		i <- i-1
@@ -83,8 +86,9 @@ while (i >= 1) {
 		i <- i-1
 	}
 }
-print(i)
-
+```
+Now, for show, I'll put the new variable in a matrix and print.
+```{r}
 partystrength.matrix <- matrix(table(mturk.stress$partystrength),ncol=1,nrow=4)
 rownames(partystrength.matrix) <- c("True Independent","Leaning Independent","Weak Partisan", "Strong Partisan")
 colnames(partystrength.matrix) <- c("n")
@@ -95,9 +99,9 @@ partystrength.matrix
 #### Create an index variable for the “political engagement scale”.
 ##### Recode any of the six variables that are reverse coded and create an additive index.
 
-reverse coding polengage2, polengage4, and polengage5 with a while loop#
+I'll start by running a while loop to reverse code questions 28, 30, and 31.
 ```{r}
-i <- 1926
+i <- nrow(mturk.stress)
 while (i >= 1) {
       if(is.na(mturk.stress[i,28])==TRUE) {
 	  }
@@ -133,15 +137,11 @@ if(is.na(mturk.stress[i,31])==TRUE) {
 	  mturk.stress[i,31] <- 5}
 i <- i-1
 }
-
-#checking iteration
-print(i)
-
-
-
-#summing a vector of the polengage variables, and saving it as polengage
+```
+I'm adding a new null variable, named `polengage` and running a while loop to fill it with the sum of the other six political engagement variables.
+```{r}
 mturk.stress$polengage <- NA
-i <- 1926
+i <- nrow(mturk.stress)
 while (i >=1) {
 if(is.na(mturk.stress[i,27])==TRUE){
 }
@@ -158,23 +158,24 @@ mturk.stress[i,138] <- sum(mturk.stress[i,27:32])
 }
 i <- i-1
 }
-
-#checking iteration completed
-print(i)
 ```
 
 #### Create seperate tables that show the distribution of three variables in the dataset.
 
-creating and printing a table for born in the US
+Whether participants were born in the US:
 ```{r}
 borninUS.table <- table(mturk.stress$borninUS)
 rownames(borninUS.table) <- c("Yes", "No")
 borninUS.table
-
+```
+Whether they are married:
+```{r}
 marital.table <- table(mturk.stress$marital)
 rownames(marital.table) <- c("Single","Married","Widowed","Divorced","Other")
 marital.table
-
+```
+Their occupations:
+```{r}
 occupation.table <- table(mturk.stress$occupation)
 rownames(occupation.table) <- c("Clerical","Professional","Self-Employed","Corporation","Other White Collar","Service","Custodial/Factory","Construction","Other Blue Collar","Homemaker","Student","Unemployed")
 occupation.table
@@ -182,7 +183,7 @@ occupation.table
 
 #### Identify two variables that may be related.
 
-t.test would be good, but the hypotheses are in the doc
+> Pull this section from the pdf when you get around to it
 
 ***
 
