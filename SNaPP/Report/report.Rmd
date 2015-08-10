@@ -1,16 +1,29 @@
 ---
-output: pdf_document
+output: html_document
 ---
 ## Canned Data Report
-##### Edward Hernández
-I'm going to complete the canned data report assignment from Fall 2014 (again) to brush up on my R skills.
+##### Edward Hernández  
 
-Obviously, let's start by reading in some data.
+***
+### Introduction
+
+This is a recreation of the canned data report assignment from Fall 2014 to brush up on my R skills.
+
+Obviously, let's start by reading in the data about the MTurk experiment.
 ```{r}
 mturk.stress <- read.csv("mturkstress.csv",header=TRUE)
 ```
 
-Now let's have some fun with it!
+Just to get it out of the way, let's load some libraries and set some parameters up front:
+```{r}
+library(knitr)
+opts_chunk$set(comment = NA)
+results='asis'
+```
+
+Now let's have some fun!
+
+***
 
 ### Variables
 
@@ -21,6 +34,7 @@ The experiment had four treatment conditions: a control, a stress condition, a p
 ```{r}
 treatmenttable <- table(mturk.stress$treatmentgroup)
 rownames(treatmenttable) <- c("Control","Stress","Politics","Content")
+
 treatmenttable
 ```
 
@@ -170,6 +184,8 @@ occupation.table
 
 t.test would be good, but the hypotheses are in the doc
 
+***
+
 ### Sample
 
 #### What proportion of respondents finished the survey?
@@ -216,12 +232,18 @@ demtestmatrix
 prop.test(demtestmatrix)
 ```
 
+***
+
 ### Hypothesis Testing
 
 #### Did the political stress treatment cause respondents to report a lower likelihood of voting compared to respondents in the control group? First, be clear on what test you are running to assess this hypothesis. I will check your code to see if you implemented the test correctly. In your report, you should clearly explain your finding.
 
 running a t-test to rule out the null hypothesis
+```{r}
 t.test(mturk.stress$votelikely~mturk.stress$pol)
+```
+
+***
 
 ### Data Visualization
 
