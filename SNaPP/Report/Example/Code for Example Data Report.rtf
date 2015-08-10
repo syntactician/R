@@ -1,0 +1,470 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1343\cocoasubrtf160
+{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;}
+\margl1440\margr1440\vieww12600\viewh7800\viewkind0
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural
+
+\f0\fs24 \cf0 \
+\
+#######################################################\
+#######################################################\
+################  Code for Example Data Report    ###################\
+#######################################################\
+#######################################################\
+\
+\
+#-------------------Data Summary-------------------#\
+\
+test <- matrix(NA,16,2)\
+test[,1] <- names(OCnatlnews)[1:16]\
+xtable(test)\
+\
+sumstat <- matrix(NA, 15, 3)\
+for (i in 1:15)\{\
+\
+  sumstat[i,1] <- names(OCnatlnews)[i]\
+  sumstat[i,2] <- length(unique(OCnatlnews[,i]))\
+  sumstat[i,3] <- length(which(is.na(OCnatlnews[,i])))\
+\
+\}\
+\
+xtable(sumstat)\
+\
+  #sumstat[i,3] <- min(OCnatlnews[,i], na.rm=T)\
+  #sumstat[i,4] <- max(OCnatlnews[,i], na.rm=T)\
+\
+\
+####------------------Missing Data------------------------###\
+\
+xtable(OCnatlnews[which(is.na(OCnatlnews$id)), c(1,2,4,13:15)])\
+xtable(OCnatlnews[which(is.na(OCnatlnews$article_id)), c(1,2,4,6, 13:15)])\
+\
+####------------------State Table------------------------###\
+\
+totalwords <-aggregate(OCnatlnews$totalwords, by=list(OCnatlnews$Statename), FUN=sum, na.rm=TRUE)\
+totalarticles <- t(t(table(OCnatlnews$Statename)))\
+\
+statetable <- cbind(totalwords, totalarticles)\
+xtable(statetable[,c(1,2,5)])\
+\
+\
+#######----------------Day by Day Plots----------------###################\
+\
+#This file should be set up so that each row is a day and your columns are your variables of interest. So you could imagine that you might want to compare two states to one another, or look at the total average number/proportion of a variable at the national level.\
+\
+#Daily\
+daily <- as.data.frame(table(OCnatlnews$Day))\
+\
+#If you want to get the total counts of something, you could do like this\
+totalwords <-aggregate(OCnatlnews$totalwords, by=list(OCnatlnews$Day), FUN=sum, na.rm=TRUE)\
+deathpanels <-aggregate(OCnatlnews$death_panels, by=list(OCnatlnews$Day), FUN=sum, na.rm=TRUE)\
+\
+#Here you are setting up the parameters for your plot\
+par(mar=c(5,6,5,.5), cex=1.1, font=2, font.lab=2, cex.axis=.4)\
+COLOR=c("red")\
+\
+#Here you are doing the actual plotting, but type="n" means you are masking the plot \
+plot(daily[,2], type="n", ylim=c(0, 1500), xlim=c(0,31), yaxt="n", xaxt="n",\
+     main="Number of Health Care Reform Related\\nArticles by Day, August 2009",\
+     ylab="",\
+     xlab="")\
+\
+#Here you are plotting the actualy line. NAMES is a vector of the variables you want to plot, and notice because our variable of interest is in the second column, we are actually plotting "i + 1". If you were plotting more than one newspaper or state at a time, for example, you might use the second line. You would also want to make your color vector match. The "lwd" part controls the width of the line, so you can make it thicker if you want\
+\
+NAMES <- c("Freq")\
+\
+for (i in 1:length(NAMES))\{\
+  lines(daily[,i+1], col=COLOR[i], lwd=1.25)\
+\}\
+\
+###Adding in the x-axis\
+axis(side=1, at=seq(1, 31, 1), label=c(seq(1, 31, by=1)), las=0, cex=.1, tick=F, line=-1)\
+\
+\
+###Adding in the y-axis. You are doing something fancy here.\
+par(mar=c(5,6,5,.5), cex=1.1, font=2, font.lab=2, cex.axis=1, new=T)\
+axis(side=2, at=seq(0, 1500, 100), label=c("0", "100", "200", "300", "400", "500", "600", "700", "800", "900", "1000", "1100", "1200", "1300", "1400", "1500"), las=2, cex=2.5)\
+axis(side=2, at=750, label=c("Number of Articles"), las=0, line=3, font=2, tick=F)\
+axis(side=1, at=15, label=c("August 1 - 31, 2009"), las=0, cex=.7, line=1, font=2, tick=F)\
+\
+#Adding in text and arrows for specific events. First you specify the x coordinates, and then the y coordinates, and then the text\
+#text(c(16,16), c(600, 600), "Obama signals\\nwillingness\\nto drop public option", cex=.7, pos=4 ) \
+#arrows(16.5, 600, 15.5, 700, length=.2) \
+\
+\
+\
+\
+\
+#######----------------Difference of Mean or Proportion Plots----------------###################\
+#If you wanted to compare proportions for 2-5 things in a single plot, this might be the way to go. Say for example that you notice that there appears to be a weekly trend, with a greater proportion of overall healthcare coverage on weekdays. I looked at an August 2009 calendar, and found that August 1,2,8,9,15,16,22,23,29, 30 were weekend days. I could compare the proportion of coverage on weekdays to weekend days to see if there is a difference\
+\
+###Here, we are figuring out which dates were weekend days and which were not\
+weekend <- c(1,2,8,9,15,16,22,23,29, 30)\
+test <- unique(OCnatlnews$Day)%in%weekend\
+weekday <- unique(OCnatlnews$Day)[which(test=="FALSE")]\
+\
+#Here, we are making a daily count file, figuring out the means, and then calculating the standard errors\
+daily <- as.data.frame(table(OCnatlnews$Day))\
+daily$daytest <- ifelse(daily$Var1%in%weekend, 1, 0)\
+weekendcount <- t.test(daily$Freq ~ daily$daytest)\
+weekendcountSE1 <- 1.96*(sd(daily$Freq[which(daily$daytest==0)])/sqrt(length(daily$daytest[which(daily$daytest==0)])))\
+weekendcountSE2 <- 1.96*(sd(daily$Freq[which(daily$daytest==1)])/sqrt(length(daily$daytest[which(daily$daytest==1)])))\
+\
+#same thing but for mean daily article length\
+articlelength <-aggregate(OCnatlnews$totalwords, by=list(OCnatlnews$Day), FUN=mean, na.rm=TRUE)\
+articlelength$daytest <- ifelse(articlelength$Group.1%in%weekend, 1, 0)\
+weekendlength <- t.test(articlelength$x ~ articlelength$daytest)\
+weekendlengthSE1 <- 1.96*(sd(articlelength$x[which(articlelength$daytest==0)])/sqrt(length(articlelength$daytest[which(articlelength$daytest==0)])))\
+weekendlengthSE2 <- 1.96*(sd(articlelength$x[which(articlelength$daytest==1)])/sqrt(length(articlelength$daytest[which(articlelength$daytest==1)])))\
+\
+\
+###Check out the objects you've created, and create a table to plot from\
+weekendcount\
+names(weekendcount)\
+\
+weekendcounttable <- rbind(\
+\
+                           c(weekendcount$estimate[[1]], weekendcount$estimate[[2]]),\
+                           c(sd(daily$Freq[which(daily$daytest==0)]), sd(daily$Freq[which(daily$daytest==1)])),\
+                           c(weekendcount$estimate[[1]]+weekendcountSE1, weekendcount$estimate[[2]]+weekendcountSE2),\
+                           c(weekendcount$estimate[[1]]-weekendcountSE1, weekendcount$estimate[[2]]-weekendcountSE2)\
+\
+                           )\
+\
+\
+\
+weekendlength\
+names(weekendlength)\
+weekendlengthtable <- rbind(\
+                            c(weekendlength$estimate[[1]], weekendlength$estimate[[2]]),\
+                            c(sd(articlelength$x[which(articlelength$daytest==0)]), sd(articlelength$x[which(articlelength$daytest==1)])),\
+                           c(weekendlength$estimate[[1]]+weekendlengthSE1, weekendlength$estimate[[2]]+weekendlengthSE2),\
+                           c(weekendlength$estimate[[1]]-weekendlengthSE1, weekendlength$estimate[[2]]-weekendlengthSE2)\
+\
+                            )\
+\
+#Note that there are on average fewer articles published on the weekend but they are longer\
+\
+##Setting up your plotting preliminaries\
+COLOR <- c("orange", "blue")\
+COLOR.NAME <- c("orange", "blue")\
+par(mar=c(5,6,5,.5), cex=1, font=2, font.lab=2)\
+\
+# plot call for article counts\
+barplot(weekendcounttable[1,],\
+     beside=T,col=COLOR,font=2,font.lab=2,ylim=c(0,1100), ylab="", yaxt="n",\
+    \
+)\
+\
+##Adding the standard error bars\
+ind <- c(.7,1.9)\
+for(i in 1:2)\{\
+lines(c(ind[i],ind[i]), c(weekendcounttable[3,i], weekendcounttable[4,i]), lwd=1, lty=1, col=1)\
+\}\
+\
+#Making the plot pretty\
+axis(side=2,at=seq(from=0, to=1100, by=100), label=c("0", "100", "200", "300", "400", "500", "600", "700", "800", "900", "1000", "1100"), las=2, cex=.5)\
+axis(side=1, at=c(.7,1.9), label=c("Weekdays", "Weekends"), las=1, cex=.1, line = 1, lwd=0)\
+axis(side=2, at=550, label=c("Mean Daily Article Count"), las=0, cex=.7, line=3, font=2, tick=F)\
+mtext(c("Difference in Average Number of Articles per Day\\n Weekday vs. Weekend"), las=0, cex=1.1, line=1, font=2, side=3, at=1.3)\
+\
+abline(h=0, lty=3, col="grey") \
+box() # add box around plot region\
+\
+\
+\
+#######----------------Framing: Telling a story with a plot----------------###################\
+\
+###Suppose you want to plot both the overall coverage of health care reform but simultaneously tell a story about a particular frame\
+\
+#Death Panel\
+OCnatlnews$dpcount <- NA\
+OCnatlnews$dpcount[which(OCnatlnews$death_panels>0 | (OCnatlnews$death>0 & OCnatlnews$panel>0) | (OCnatlnews$death>0 & OCnatlnews$panels>0))] <- 1\
+dpartcount <-aggregate(OCnatlnews$dpcount, by=list(OCnatlnews$Day), FUN=sum, na.rm=TRUE)\
+\
+#Town Hall\
+OCnatlnews$thcount <- NA\
+OCnatlnews$thcount[which(OCnatlnews$town_hall>0 | OCnatlnews$town_halls>0)] <- 1\
+thartcount <-aggregate(OCnatlnews$thcount, by=list(OCnatlnews$Day), FUN=sum, na.rm=TRUE)\
+\
+#Socialized Medicine\
+OCnatlnews$smcount <- NA\
+OCnatlnews$smcount[which(OCnatlnews$socialism>0 | OCnatlnews$socialist>0 | OCnatlnews$socialists>0 | OCnatlnews$socialistic>0 | OCnatlnews$socialization>0 | OCnatlnews$socialize>0 | OCnatlnews$socialized>0 | OCnatlnews$socialized_medicine>0 | OCnatlnews$socializes>0 | OCnatlnews$socializing>0)] <- 1\
+smartcount <-aggregate(OCnatlnews$smcount, by=list(OCnatlnews$Day), FUN=sum, na.rm=TRUE)\
+\
+#ration\
+OCnatlnews$rccount <- NA\
+OCnatlnews$rccount[which(OCnatlnews$ration>0 | OCnatlnews$rationed>0 | OCnatlnews$rationed_care>0 | OCnatlnews$rationing>0 | OCnatlnews$rations>0)] <- 1\
+rcartcount <-aggregate(OCnatlnews$rccount, by=list(OCnatlnews$Day), FUN=sum, na.rm=TRUE)\
+\
+#nazi\
+OCnatlnews$nzcount <- NA\
+OCnatlnews$nzcount[which(OCnatlnews$nazi>0 | OCnatlnews$nazis>0 | OCnatlnews$nazism>0 | OCnatlnews$hitler>0 | OCnatlnews$swastika>0)] <- 1\
+nzartcount <-aggregate(OCnatlnews$nzcount, by=list(OCnatlnews$Day), FUN=sum, na.rm=TRUE)\
+\
+#Making a matrix with the counts\
+wordplotting <- cbind(dpartcount, thartcount$x, smartcount$x, rcartcount$x, nzartcount$x)\
+\
+#Making a matrix with the proportions\
+daily <- as.data.frame(table(OCnatlnews$Day))\
+wordprop <- wordplotting\
+wordprop[,2:6] <- wordplotting[,2:6]/daily$Freq\
+\
+\
+##Plotting the proportions\
+par(mar=c(5,6,5,1), cex=1.1, font=2, font.lab=2, cex.axis=.4)\
+plot(wordprop$x, type="n", ylim=c(0, .5), xlim=c(0,31), yaxt="n", xaxt="n",\
+     main="Proportion of Articles Using Key Frames\\nAugust 2009",\
+     ylab="",\
+     xlab="")\
+\
+COLOR <- c("cadetblue", "cornflowerblue", "darkgoldenrod3", "firebrick3", "mediumseagreen")\
+\
+for (i in 2:6)\{\
+  lines(wordprop[,i], col=COLOR[i-1], lwd=1.25)\
+\}\
+\
+\
+###Adding in the x-axis\
+axis(side=1, at=seq(1, 31, 1), label=c(seq(1, 31, by=1)), las=0, cex=.1, tick=F, line=-1)\
+\
+###Adding in the y-axis. You are doing something fancy here because the x-axis font size needed to be on a different scale. \
+par(mar=c(5,6,5,.5), cex=1.1, font=2, font.lab=2, cex.axis=1, new=T)\
+axis(side=2, at=seq(0, .5, .1), label=c("0%", "10%", "20%", "30%", "40%", "50%"), las=2, cex=2.5)\
+axis(side=2, at=.25, label=c("Proportion of Articles"), las=0, line=3, font=2, tick=F)\
+axis(side=1, at=15, label=c("August 1 - 31, 2009"), las=0, cex=.7, line=1, font=2, tick=F)\
+\
+legend(-1, .52, legend=c("Death Panel", "Town Hall", "Socialized Medicine", "Ration", "Nazi"), text.col=COLOR, bty="n")\
+\
+#If you want to add a vertical line to the plot, you could do it this way\
+abline(v=7, col="gray30", lty=3)\
+text(c(7,7), c(400,400), "Palin posts\\nstatus update\\nusing 'death panel'", cex=.7, pos=4, col=c("blue"))\
+\
+\
+#######-----------------Exploring Variation in Frame Coverage----------------###################\
+\
+###Variation in the Newspapers\
+dpnewspcount <-aggregate(OCnatlnews$dpcount, by=list(OCnatlnews$NewsService), FUN=sum, na.rm=TRUE)\
+thnewspcount <-aggregate(OCnatlnews$thcount, by=list(OCnatlnews$NewsService), FUN=sum, na.rm=TRUE)\
+smnewspcount <-aggregate(OCnatlnews$smcount, by=list(OCnatlnews$NewsService), FUN=sum, na.rm=TRUE)\
+rcnewspcount <-aggregate(OCnatlnews$rccount, by=list(OCnatlnews$NewsService), FUN=sum, na.rm=TRUE)\
+nznewspcount <-aggregate(OCnatlnews$nzcount, by=list(OCnatlnews$NewsService), FUN=sum, na.rm=TRUE)\
+\
+#Making a matrix with the counts\
+newspwordplotting <- cbind(dpnewspcount, thnewspcount$x, smnewspcount$x, rcnewspcount$x, nznewspcount$x)\
+\
+#Making a matrix with the proportions\
+newsp <- as.data.frame(table(OCnatlnews$NewsService))\
+newspwordprop <- newspwordplotting\
+newspwordprop[,2:6] <- newspwordplotting[,2:6]/newsp$Freq\
+newspwordprop[,7] <- newsp$Freq\
+\
+llplot <- as.data.frame(table(newsp$Freq))\
+\
+\
+##Log plot of newspapers\
+\
+COLOR <- c("darkblue")\
+par(new=FALSE, mar=c(4,4,2.5,0.5), cex=1.50)\
+plot(log10(as.numeric(llplot$Var1)), log10(as.numeric(llplot$Freq)),  pch=0, col=COLOR[1], cex=1.2, xlim=c(0,2), ylim=c(0,3), xlab="", ylab="", font.lab=2, xaxt="n", yaxt="n", cex.lab=1.5) # pol 75\
+\
+exp.x <- list(expression(10^0), expression(10^1), expression(10^2), expression(10^3))\
+exp.y <- list(expression(10^0), expression(10^1), expression(10^2), expression(10^3))\
+           \
+for(i in 1:4)\{axis(side=1, at=c(i-1), labels=exp.x[[i]], font=1, cex.axis=1.35, padj=-.25)\}\
+for(i in 1:4)\{axis(side=2, at=c(i-1), labels=exp.y[[i]], font=1, font.lab=2, cex.axis=1.35, las=2,  hadj=.75)\}\
+\
+mtext(side=1, "Number of Newspaper Articles", outer=TRUE, line=-1.5, font=2, cex=1.5, adj=.6)\
+mtext(side=2, "Frequency", outer=TRUE, line=-1.25, font=2, cex=1.5)\
+mtext(side=3, "Log-Log Distribution of Articles, by Newspaper", line=1, font=2, cex=1.5)\
+\
+\
+##Making histograms for proportions of frames for newspapers with at least X articles\
+\
+COLOR <- c("cadetblue", "cornflowerblue", "darkgoldenrod3", "firebrick3", "mediumseagreen")\
+\
+\
+#The mfcol (or mfrow) command sets up your device so you can plot multiple plots in a single window. This is effective for visualizing your data\
+par(new=FALSE, mar=c(2.5,2.5,2.5,0.5), mfcol=c(3,2), cex.main=2)\
+\
+#Death panel\
+hist(newspwordprop[which(newspwordprop$V7>4),2], xlab="", ylab="", main="Death Panel", col=COLOR[1], xlim=c(0,1), ylim=c(0,500))\
+hist(newspwordprop[which(newspwordprop$V7>4),3], xlab="", ylab="", main="Town Hall", col=COLOR[2], xlim=c(0,1), ylim=c(0,500))\
+hist(newspwordprop[which(newspwordprop$V7>4),4], xlab="", ylab="", main="Socialized Medicine", col=COLOR[3], xlim=c(0,1), ylim=c(0,500))\
+hist(newspwordprop[which(newspwordprop$V7>4),5], xlab="", ylab="", main="Ration", col=COLOR[4], xlim=c(0,1), ylim=c(0,500))\
+hist(newspwordprop[which(newspwordprop$V7>4),6], xlab="", ylab="", main="Nazi", col=COLOR[5], xlim=c(0,1), ylim=c(0,700))\
+\
+##And now, adding in some text to the last cell to distinguish this from the other plot. The basic idea is you plot something to call the window, but suppress the plotting, and then just add the text\
+plot(statewordprop$V6,statewordprop$V5 , type="n", xlab="", ylab="", xaxt="n", yaxt="n", xlim=c(0,1), ylim=c(0,1),  pch=19, col=c("black"), lwd=3, bty="n")\
+text(.5,.5, "Variation in\\nthe Newspapers", cex=3)\
+\
+####-----------------Exploring Variation in the States------------------------###\
+\
+###Variation in the States\
+dpstatecount <-aggregate(OCnatlnews$dpcount, by=list(OCnatlnews$Statename), FUN=sum, na.rm=TRUE)\
+thstatecount <-aggregate(OCnatlnews$thcount, by=list(OCnatlnews$Statename), FUN=sum, na.rm=TRUE)\
+smstatecount <-aggregate(OCnatlnews$smcount, by=list(OCnatlnews$Statename), FUN=sum, na.rm=TRUE)\
+rcstatecount <-aggregate(OCnatlnews$rccount, by=list(OCnatlnews$Statename), FUN=sum, na.rm=TRUE)\
+nzstatecount <-aggregate(OCnatlnews$nzcount, by=list(OCnatlnews$Statename), FUN=sum, na.rm=TRUE)\
+\
+#Making a matrix with the counts\
+statewordplotting <- cbind(dpstatecount, thstatecount$x, smstatecount$x, rcstatecount$x, nzstatecount$x)\
+\
+#Making a matrix with the proportions\
+state <- as.data.frame(table(OCnatlnews$Statename))\
+statewordprop <- statewordplotting\
+statewordprop[,2:6] <- statewordplotting[,2:6]/state$Freq\
+statewordprop[,7] <- state$Freq\
+\
+##Making histograms for proportions of frames for stateapers with at least X articles\
+\
+COLOR <- c("cadetblue", "cornflowerblue", "darkgoldenrod3", "firebrick3", "mediumseagreen")\
+\
+\
+#The mfcol (or mfrow) command sets up your device so you can plot multiple plots in a single window. This is effective for visualizing your data\
+par(new=FALSE, mar=c(2.5,2.5,2.5,0.5), mfcol=c(3,2), cex.main=2)\
+\
+#Death panel\
+hist(statewordprop[which(statewordprop$V7>4),2], xlab="", ylab="", main="Death Panel", col=COLOR[1], xlim=c(0,.5), ylim=c(0,20))\
+hist(statewordprop[which(statewordprop$V7>4),3], xlab="", ylab="", main="Town Hall", col=COLOR[2], xlim=c(0,.5), ylim=c(0,20))\
+hist(statewordprop[which(statewordprop$V7>4),4], xlab="", ylab="", main="Socialized Medicine", col=COLOR[3], xlim=c(0,.5), ylim=c(0,20))\
+hist(statewordprop[which(statewordprop$V7>4),5], xlab="", ylab="", main="Ration", col=COLOR[4], xlim=c(0,.5), ylim=c(0,20))\
+hist(statewordprop[which(statewordprop$V7>4),6], xlab="", ylab="", main="Nazi", col=COLOR[5], xlim=c(0,.5), ylim=c(0,20))\
+\
+##And now, adding in some text to the last cell to distinguish this from the other plot. The basic idea is you plot something to call the window, but suppress the plotting, and then just add the text\
+plot(statewordprop$V6,statewordprop$V5 , type="n", xlab="", ylab="", xaxt="n", yaxt="n", xlim=c(0,1), ylim=c(0,1),  pch=19, col=c("black"), lwd=3, bty="n")\
+text(.5,.5, "Variation in\\nthe States", cex=4)\
+\
+\
+#######-----------------Correlation Plots----------------###################\
+\
+#--------Here I am matching a measure of ideology from a state into the wordsofinterest file\
+\
+statewordprop$citizenideology <- NA\
+statewordprop$citizenideology <- statefile$citizen[match(statewordprop$Group.1, statefile$stateconds)]\
+\
+statewordprop$ada <- NA\
+statewordprop$ada <- statefile$ada[match(statewordprop$Group.1, statefile$stateconds)]\
+\
+statewordprop$nominate <- NA\
+statewordprop$nominate <- statefile$nominate[match(statewordprop$Group.1, statefile$stateconds)]\
+\
+##Correlation test\
+\
+cortable <- matrix(NA, length(2:6), 6)\
+\
+for (i in 2:6) \{\
+\
+test1 <- cor.test(statewordprop$citizenideology, statewordprop[,i])\
+test2 <- cor.test(statewordprop$ada, statewordprop[,i])\
+test3 <- cor.test(statewordprop$nominate, statewordprop[,i])\
+\
+cortable[i-1,1] <- test1$estimate[[1]]\
+cortable[i-1,2] <-test1$p.value[[1]]\
+cortable[i-1,3] <- test2$estimate[[1]]\
+cortable[i-1,4] <-test2$p.value[[1]]\
+cortable[i-1,5] <- test3$estimate[[1]]\
+cortable[i-1,6] <-test3$p.value[[1]]\
+\
+\}\
+\
+\
+xtable(round(cortable, digits=3))\
+\
+% latex table generated in R 2.15.2 by xtable 1.7-1 package\
+% Tue Aug 12 21:45:51 2014\
+\\begin\{table\}[ht]\
+\\centering\
+\\begin\{tabular\}\{rrrrrrr\}\
+  \\hline\
+ & 1 & 2 & 3 & 4 & 5 & 6 \\\\ \
+  \\hline\
+1 & 0.15 & 0.28 & 0.12 & 0.40 & 0.09 & 0.55 \\\\ \
+  2 & -0.22 & 0.12 & -0.06 & 0.68 & -0.09 & 0.54 \\\\ \
+  3 & -0.02 & 0.91 & -0.12 & 0.42 & -0.12 & 0.41 \\\\ \
+  4 & 0.07 & 0.63 & 0.06 & 0.69 & 0.05 & 0.75 \\\\ \
+  5 & -0.07 & 0.62 & -0.01 & 0.92 & 0.00 & 0.99 \\\\ \
+   \\hline\
+\\end\{tabular\}\
+\\end\{table\}\
+\
+\
+#---------------Plotting the Significant Correlation----------------#\
+\
+\
+###This is making a new vector of abbreviations for each state in the correct order for the wordsofinterest file. When you are entering this by hand, make sure you triple check the order. \
+statewordprop$abbre <- c("AK", "AL", "AR", "AZ", "CA", "CO", "CT", "DC", "DE", "FL", "GA", "HI", "IA", "ID", "IL", "IN", "KS", "KY", "LA", "MA", "MD", "ME", "MI", "MN", "MO", "MS", "MT", "NC", "ND", "NE", "NH", "NJ", "NM", "NV", "NY", "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "UT", "VA", "VT", "WA", "WI", "WV", "WY")\
+\
+#Preliminaries#\
+\
+###this has the effect of creating a range of colors that go from red to blue. If you want to do a range of a different set of colors, you could plug in different color names for "red2" and "blue2"\
+\
+COLOR <- colorRampPalette(c("red2","blue2"))( 51 ) ## (n)\
+\
+##Here, I am creating a a new object called "plot file" that just the columns of interest and is ordered based on the ideology variable (wordsofinterest$citizenideology). This reordering is key because it allows you to plot the points in the color order you created above. Your column numbers will change depending on the variables you've included in your words of interest file. \
+plotfile <- statewordprop[order(statewordprop$citizenideology),]\
+\
+\
+\
+#this first line sets of the parameters of the plot. Type ?par in your R window if you want to learn more about these specific parameters\
+par(mar=c(6,6,6,.5), font=2, font.lab=2)\
+\
+#Here, you are calling the plot command, with the x-axis taking the vlaue of the ideology measure and the y-axis taking the value of the total proportion of status updates that use "death panel." You sent your x and y limits to appropriate values. You tell R not to label t the x and x axises because you want to do this by hand. \
+plot(plotfile$citizenideology, plotfile[,3], ylim=c(0, .5), xlim=c(20,90),  yaxt="n", xaxt="n",\
+     main="", \
+     ylab="",\
+     xlab="", col=COLOR, pch=19, cex=1)\
+\
+#Now you are adding in all of the details the way you want. \
+mtext("State Citizen Ideology and Mentions of Town Halls\\nAugust 2009", side=3, at=55, las=0,  line=1, font=2, cex=1.25)\
+  axis(side=2, at=seq(0, .5,.1), label=c("0", "10%", "20%", "30%", "40%", "50%"), las=2)\
+axis(side=2, at=.25, label=c("Proportion of All Articles Mentioning 'Town Hall'"), las=0, line=3, font=2, tick=F)\
+axis(side=1, at=c(seq(20,90, by=10)), label=c(seq(20,90, by=10)), las=0, line= 0, font=1,  tick=T)\
+axis(side=1, at=55, label=c("State Citizen Ideology"), las=0, line=2, font=2, tick=F)\
+\
+#now you are running a loop to add some text inside the plotting window so you know which state is which. You are looping through the file state by state, each time writing the abbreviation of the state 1.5 to the right and .0015 above the point. This will only work if you have added in the abbreviations in the same order as your wordsofinterest file. \
+for (i in 1:dim(plotfile)[1])\{\
+    text(plotfile$citizenideology[i]+1.5, plotfile[i,3]+.0035, label=plotfile$abbre[i], cex=.6)\
+\}\
+\
+\
+\
+\
+\
+#######-----------------Cleveland Dot Plots----------------###################\
+###This is a good plot to use when you want to order the states or newspapers by proportions. The traditional way you do this is make the biggest value the top row and the smallest value the bottom row. In the examples below, I change that so that the states are ordered by ideology. \
+\
+statewordplotting$totalarticles <- NA\
+statewordplotting$totalarticles <- statewordprop[match(statewordplotting$Group.1, statewordprop$Group.1), 7]\
+\
+\
+statewordplotting$citizenideology <- NA\
+statewordplotting$citizenideology <- statefile$citizen[match(statewordplotting$Group.1, statefile$stateconds)]\
+\
+###The first thing I am doing is creating a relative proportion of all the articles that mention universal\
+N1 <- statewordplotting[,3]   ###number of articles mention town hall \
+P1 <- statewordplotting[,7]  ###number of articles\
+SAMPLEPROP1 <- N1/P1\
+SQRT1 <- sqrt((SAMPLEPROP1*(1-SAMPLEPROP1))/N1)\
+SEU1 <- SAMPLEPROP1 + 1.96*SQRT1\
+SEL1 <- SAMPLEPROP1 - 1.96*SQRT1\
+\
+dotplotdata <- statewordplotting\
+dotplotdata$SAMPLEPROP <- SAMPLEPROP1\
+dotplotdata$SEU1 <- SEU1\
+dotplotdata$SEL1 <- SEL1\
+\
+#I am now ordering the data in reverse ideological order, and again creating a color spectrum\
+dotplotdata <- dotplotdata[rev(order(dotplotdata$citizenideology)),]\
+\
+\
+#removing DC since we have no citizen ideology data\
+dotplotdata <- dotplotdata[which(!is.na(dotplotdata$citizenideology)),]\
+COLOR <- colorRampPalette(c("blue2","red2"))( 50 ) ## (n)\
+\
+#I'm now doing the actual plotting command. You can change the size of the x-axis\
+dotchart(dotplotdata$SAMPLEPROP,labels=dotplotdata$Group.1, cex=.6, xlim=c(-.10,1), xlab="Proportion of All Health Care Reform Related Articles", pch=15, color=COLOR, main="Newspaper Articles Mentioning 'Town Hall'")\
+\
+#I'm now adding in the confidence interval lines. I don't think this actually appropriate since we are looking at the universe of data.\
+for(i in 1:dim(dotplotdata)[1])\{lines(c(dotplotdata$SEU1[i],dotplotdata$SEL1[i]), c(i,i), col=COLOR[i])\}\
+}
