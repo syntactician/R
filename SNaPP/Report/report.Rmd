@@ -14,7 +14,7 @@ Obviously, let's start by reading in the data about the MTurk experiment.
 mturk.stress <- read.csv("mturkstress.csv",header=TRUE)
 ```
 
-```{r, echo=FALSE}
+```{r, }
 # Just to get it out of the way, let's load some libraries and set some parameters up front:
 library(knitr)
 opts_chunk$set(comment = NA)
@@ -31,7 +31,7 @@ Now let's have some fun!
 
 The experiment had four treatment conditions: a control, a stress condition, a political stress condition, and a contentment condition. Participants were evenly distributed among these conditions.
 
-```{r, echo=FALSE}
+```{r, }
 treatmenttable <- table(mturk.stress$treatmentgroup)
 rownames(treatmenttable) <- c("Control","Stress","Politics","Content")
 
@@ -47,11 +47,11 @@ treatmenttable
 
 
 To do this, I'll creat a new variable called `partystrength` in the `mturk.stress` dataset, initially filled with `NA` values.
-```{r, echo=FALSE}
+```{r, }
 mturk.stress$partystrength <- NA
 ```
 Then I'll run a while loop that will fill in the new variable based on the existing data.
-```{r,echo=FALSE}
+```{r,}
 i <- nrow(mturk.stress)
 while (i >= 1) {
 	if(is.na(mturk.stress[i,23])==TRUE) {
@@ -86,7 +86,7 @@ while (i >= 1) {
 }
 ```
 Now, for show, I'll put the new variable in a matrix and print.
-```{r,echo=FALSE}
+```{r,}
 partystrength.matrix <- matrix(table(mturk.stress$partystrength),ncol=1,nrow=4)
 rownames(partystrength.matrix) <- c("True Independent","Leaning Independent","Weak Partisan", "Strong Partisan")
 colnames(partystrength.matrix) <- c("n")
@@ -98,7 +98,7 @@ partystrength.matrix
 ##### Recode any of the six variables that are reverse coded and create an additive index.
 
 I'll start by running a while loop to reverse code questions 28, 30, and 31.
-```{r,echo=FALSE}
+```{r,}
 i <- nrow(mturk.stress)
 while (i >= 1) {
       if(is.na(mturk.stress[i,28])==TRUE) {
@@ -137,7 +137,7 @@ i <- i-1
 }
 ```
 I'm adding a new null variable, named `polengage` and running a while loop to fill it with the sum of the other six political engagement variables.
-```{r,echo=FALSE}
+```{r,}
 mturk.stress$polengage <- NA
 i <- nrow(mturk.stress)
 while (i >=1) {
@@ -162,19 +162,19 @@ I still need to figure out a good way to show this off in the output document, b
 #### Create seperate tables that show the distribution of three variables in the dataset.
 
 Whether participants were born in the US:
-```{r,echo=FALSE}
+```{r,}
 borninUS.table <- table(mturk.stress$borninUS)
 rownames(borninUS.table) <- c("Yes", "No")
 borninUS.table
 ```
 Whether they are married:
-```{r,echo=FALSE}
+```{r,}
 marital.table <- table(mturk.stress$marital)
 rownames(marital.table) <- c("Single","Married","Widowed","Divorced","Other")
 marital.table
 ```
 Their occupations:
-```{r,echo=FALSE}
+```{r,}
 occupation.table <- table(mturk.stress$occupation)
 rownames(occupation.table) <- c("Clerical","Professional","Self-Employed","Corporation","Other White Collar","Service","Custodial/Factory","Construction","Other Blue Collar","Homemaker","Student","Unemployed")
 occupation.table
@@ -185,7 +185,7 @@ occupation.table
 It is likely that a participant’s anxiety strength at the thought of political discussion is
 inversely correlated with their propensity to engage in political activity. Presumably, the anxiety would be the independent variable that would influence the political engagement as a dependent variable.
 
-```{r,echo=FALSE}
+```{r,}
 t.test(mturk.stress$saisscale, mturk.stress$polengage)
 stress <- mturk.stress$saisscale
 engagement <- mturk.stress$polengage
