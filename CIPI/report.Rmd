@@ -1,0 +1,307 @@
+---
+title: "CIPI Batch Processing Code"
+author: "Edward Hernández"
+date: "November 12, 2015"
+output:
+  html_document: default
+  pdf_document:
+    keep_tex: yes
+  word_document: default
+---
+# Setting the Stage
+
+I will be loading the `data.table` package, because its `fread()` command has *huge* speed advantages over `read.table` (which in turn has tiny benefits over `read.delim`).
+```{r data_table, results="hide"}
+require(data.table)
+```
+
+I'll do a quick speed test here, to prove my point.
+``` {r speed_test, echo=FALSE}
+FILE <- "./F15/raw133063.txt"
+```
+
+First, `read.table`:
+```{r read.table}
+ptm <- proc.time()
+file <- read.table(FILE)
+table.time <- proc.time() - ptm
+print(table.time)
+```
+
+Now, `fread`:
+```{r fread}
+ptm <- proc.time()
+file <- fread(FILE)
+fread.time <- proc.time() - ptm
+print(fread.time)
+```
+
+In this test, we save `r round(table.time[3] - fread.time[3], 1)` seconds. This is approximately the time saved *per file* for the Fall 2015 data.
+I think that's pretty compelling, but I understand that there might be some reticence in using third-party packages.
+Throughout this code, when I use a command which relies on the `data.table` package, I will also include a line of code, commented out, which would perform the same operation using only `base` R.
+
+# Overarching Stuff
+
+```{r setup, echo=FALSE}
+F14.FILES <- list.files(path = "./F14/", pattern = "[0-9]{5}\\.txt", full.names = TRUE)
+F15.FILES <- list.files(path = "./F15/", pattern = "[0-9]{6}\\.txt", full.names = TRUE)
+FILES <- append(F14.FILES,F15.FILES)
+
+processeddata <- data.frame(matrix(NA, length(FILES) , 41))
+```
+
+# Fall 2014
+
+There may be files in this directory that have problems. To avoid reading in Since files are named `XXXXX(problem).txt`, files with problems should not be caught by the regular expression `[0-9]{5}\\.txt`, since they would have non-digit characters immediately preceding the file extension. Thus, `FILES` should only inherit good files.
+```{r}
+FILES <- F14.FILES <- list.files(path = "./F14/", pattern = "[0-9]{5}\\.txt", full.names = TRUE)
+```
+
+I'll read in the conditions file I made from some stuff I found lying around.
+```{r}
+conditions <- fread("conditions.csv")
+# condition <- read.csv("conditions.csv",header=F)
+```
+
+The file is pretty gross, and it has tons of duplicate lines. I'll get rid of those and name the columns.
+```{r}
+conditions[!duplicated(conditions),] -> conditions
+names(conditions) <- c("ID", "Condition")
+```
+
+I'll also sort the data.frame in case I ever look through it manually for some reason.
+```{r}
+conditions <- conditions[order(conditions$ID),]
+row.names(conditions) <- 1:length(row.names(conditions))
+```
+
+I'll integrate/reinvent the Fall 2014 code here when I have time.
+Right now, it's just running a loop to add a line of `NA` values for each Fall 2014 participant.
+I'll fix this as soon as I figure out how to efficiently read in a `.xls` file.
+```{r}
+for(i in 1:length(F14.FILES)) {
+  procdata <- partid <- substr(FILES[i], nchar(FILES[i])-8, nchar(FILES[i])-4)
+  procdata <- append(procdata,rep(NA,40))
+
+  processeddata[i,] <- procdata
+  remove(procdata)
+}
+```
+
+## The Loop
+
+```{r}
+for(i in 1:length(F14.FILES)) {
+  procdata <- partid <- substr(FILES[i], nchar(FILES[i])-8, nchar(FILES[i])-4)
+  
+  condition <- conditions[which(ID==partid)]$Condition
+  
+  file <- fread(FILES[i])
+  file$V4 <- NULL
+  
+  # file <- read.table(FILES[i])
+  
+  names(file) <- c("PPG", "EDA", "HR")
+  
+  if (condition==1) {
+    
+    start <- start.pol
+    end <- end.pol
+  
+  } else if (condition==2) {
+    
+    start <- start.apol
+    end <- end.apol
+    
+  } else {
+  # error
+    
+    start <- c(rep(0,20))
+    end <- c(rep(0,20))
+    
+  }
+  
+  for (j in 1:length(start)){
+    procdata <- append(procdata, mean(file$EDA[start[j]:end[j]], na.rm=T)) # mean EDA
+    procdata <- append(procdata, mean(file$HR[start[j]:end[j]], na.rm=T)) # mean HR
+  }
+  
+  processeddata[i,] <- procdata
+  remove(procdata)
+  
+}
+```
+
+# Fall 2015
+
+I don't know what I need up here right now
+```{r setup}
+```
+
+The naming convention from earlier should still work here.
+```{r}
+F15.FILES <- list.files(path = "./F15/", pattern = "[0-9]{6}\\.txt", full.names = TRUE)
+FILES <- append(F14.FILES,F15.FILES)
+```
+
+I do need to declare `keylist`.
+I should probably declare `processeddata` earlier, though, to catch the Fall 2014 data.
+```{r objects}
+# this is an important object right now
+keylist <- vector(mode="list", length(FILES))
+# this is the goal
+# this should probably go earlier
+# processeddata <- data.frame(matrix(NA, length(FILES) , 61))
+```
+
+## Building the Loop
+I'll be writing all my code in this section using the loop counter, `i`, so that all this code can form the loop after I've manually written the first iteration.
+
+I want this loop to target all and only Fall 2015 files. Fall 2014 files are all handled above.
+Since `FILES` contains the full paths to both Fall 2014 and 2015 data, in that order, this line should set an appropriate scope for the loop.
+```{r scope}
+for (i in (length(F14.FILES)+1):length(FILES)) {}
+```
+
+For now, though, I'll be running code manually on the first Fall 2015 file.
+```{r iteration}
+i <- length(F14.FILES) + 1
+```
+
+I want to grab the participant number from the file right off the bat. Unfortunately, since I've added *full* file paths to the `FILES` object, the items in that object aren't ideal for a simple `substr` call. They look like ` `r F15.FILES[1]` `.
+
+
+
+```{r}
+  procdata <- partid <- substr(FILES[i], nchar(FILES[i])-9, nchar(FILES[i])-4)
+```
+
+```{r}
+  file <- fread(FILES[i])
+```
+
+`fread` has some idiosyncracies, like adding an extra column to the data.frame it reads in (`V5`).
+I'm also naming my columns here, for ease of use later.
+```{r}
+  file$V5 <- NULL
+  names(file) <- c("ECG", "EDA", "Indicator", "HR")
+```
+
+I'll need some way of figuring out what time periods (what ranges of line) I'll want to look at. I'll start that by figuring out what lines in the data file have `5`s in the `Indicator` variable.
+```{r}
+  indvector <- as.numeric(rownames(file)[which(file$Indicator==5)])
+```
+
+I'm interested in finding which `5`s are the first in a burst of `5`s, so I only need lines which have `5`, but which are not preceded by a line with `5`.
+I could do this with `for` loop, which would check `indvector[n]==indvector[n-1]+1`, but I'd prefer to avoid `for` loops as much as possible.
+
+Instead, I'm going to declare a new vector, which is `indvector` offset by appending a `0` at the head (to make the first line a first `5`).
+```{r}
+  indtest <- append(0,indvector)
+```
+
+I'll append a value (which won't get caught our test) to the tail of `indvector` so that it matches the new length of `indtest`.
+
+```{r}
+  indvector <- append(indvector, tail(indvector,1)+1)
+```
+
+Then, I'll run an `ifelse` comparing the two vectors. This should output `0` if the `5` is not a first `5`.
+```{r}
+  keyvec <- ifelse(indvector==(indtest+1),0,1)
+```
+
+I'll then grab only the line numbers where those `1`s occur.
+```{r}
+  keylist[[i]] <- keypoint <- indvector[keyvec==1]
+```
+
+The next section needs to be a little verbose, so for brevity, I'll be declaring (and renaming) some things that I'll be using a lot.
+```{r}
+  keypoint -> k#eypoint
+  60000 -> d#uration
+```
+
+This specifies the starting and ending points of the time sections we care about.
+```{r}
+  start <- c(k[1]-d, k[1], k[3]-d, k[3], k[5]-d, k[5], k[6]+d, k[7]-3*d, k[7]-d, k[7], k[9]-d, k[9], k[11]-d, k[11], k[12]+d, k[13]-d*3, k[13]-d, k[13], k[13]+d, k[13]+d*2)
+    
+  end <- c(k[1], k[2], k[3], k[4], k[5], k[6], k[6]+d*2, k[7]-d*2, k[7], k[8], k[9], k[10], k[11], k[12], k[12]+d*2, k[13]-d*2, k[13], k[13]+ d, k[13]+d*2, k[14])
+```
+
+As I've said, I'm not a huge fan of `for` loops, but I haven't figured out another way of doing this next section yet. I need to take means of each column from the each time block, appending them to `procdata`.
+```{r}
+  for (j in 1:length(start)){
+    # procdata <- append(procdata, 0) # mean ECG removed 
+    procdata <- append(procdata, mean(file$EDA[start[j]:end[j]], na.rm=T)) # mean EDA 
+    procdata <- append(procdata, mean(file$HR[start[j]:end[j]], na.rm=T)) # mean HR 
+  }
+```
+
+With that, our massive `for` loop is nearly finished. I just need to add the `procdata` object we've just created to `processeddata` and then `remove` the object itself to make way for the next iteration.
+
+```{r loop.building, include=FALSE}
+  processeddata[i,] <- procdata
+  remove(procdata)
+```
+
+## The Loop
+Here's the loop that all that code just built:
+```{r the_big_loop, results="hide"}
+# here goes
+for (i in (length(F14.FILES)+1):length(FILES)) {
+
+  procdata <- partid <- substr(FILES[i], nchar(FILES[i])-9, nchar(FILES[i])-4)
+
+  file <- fread(FILES[i])
+  file$V5 <- NULL
+  
+  names(file) <- c("ECG", "EDA", "Indicator", "HR")
+  
+  indvector <- as.numeric(rownames(file)[which(file$Indicator==5)])
+  indtest <- append(0,indvector)
+  indvector <- append(indvector, indvector[length(indvector)]+1)
+  
+  keyvec <- ifelse(indvector==(indtest+1),0,1)
+  
+  keylist[[i]] <- keypoint <- indvector[keyvec==1]
+  
+  if(length(keypoint)!=14) {
+    print(paste("ERROR", partid, sep="_"))
+  } else {
+    
+    keypoint -> k#eypoint
+    60000 -> d#uration
+    
+    start <- c(k[1]-d, k[1], k[3]-d, k[3], k[5]-d, k[5], k[6]+d, k[7]-3*d, k[7]-d, k[7], k[9]-d, k[9], k[11]-d, k[11], k[12]+d, k[13]-d*3, k[13]-d, k[13], k[13]+d, k[13]+d*2)
+    
+    end <- c(k[1], k[2], k[3], k[4], k[5], k[6], k[6]+d*2, k[7]-d*2, k[7], k[8], k[9], k[10], k[11], k[12], k[12]+d*2, k[13]-d*2, k[13], k[13]+ d, k[13]+d*2, k[14])
+    
+    for (j in 1:length(start)){
+      # procdata <- append(procdata, 0) # mean ECG
+      procdata <- append(procdata, mean(file$EDA[start[j]:end[j]], na.rm=T)) # mean EDA
+      procdata <- append(procdata, mean(file$HR[start[j]:end[j]], na.rm=T)) # mean HR
+    }
+    
+  processeddata[i,] <- procdata
+  remove(procdata)
+
+  }
+}
+
+```
+
+# Fixing Some Things
+
+```{r fixes}
+unlisteddata <- unlist(processeddata)
+unlist2 <- as.numeric(unlisteddata)
+pdata2 <- as.data.frame(matrix(data=unlist2, nrow=dim(processeddata)[1], ncol=dim(processeddata)[2]))
+```
+
+```{r conventions}
+datatype <- rep(c("meanEDA", "meanHR"), 20)
+stimtype <- c(rep("blank1.1", 2), rep("video1.1", 2), rep("blank1.2", 2), rep("video1.2", 2), rep("blank1.3", 2), rep("video1.3", 2), rep("blank1.4", 2), rep("relax1", 2), rep("blank2.1", 2), rep("video2.1", 2), rep("blank2.2", 2), rep("video2.2", 2), rep("blank2.3", 2), rep("video2.3", 2), rep("blank2.4", 2), rep("relax2", 2), rep("blank3.1", 2), rep("discussion", 2), rep("discussioninfo", 2), rep("discussiontopic", 2))
+varname <- paste(datatype, stimtype, sep="_")
+names(pdata2) <- c("partid", varname)
+```
